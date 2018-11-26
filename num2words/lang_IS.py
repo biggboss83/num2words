@@ -58,7 +58,6 @@ class Num2Word_IS(lang_EU.Num2Word_EU):
     def merge(self, lpair, rpair):
         ltext, lnum = lpair
         rtext, rnum = rpair
-        print("pair: (%s,%s)" % (lnum, rnum))
         if lnum == 1 and rnum < 100:
             return (rtext, rnum)
         elif rnum > lnum:
