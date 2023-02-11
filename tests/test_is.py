@@ -61,14 +61,16 @@ class Num2WordsISTest(TestCase):
                       "0000000000000000000000000000000000000000000000000000000"
                       "00000000000000000000000000000000", lang="is")
 
+    def test_ordinal_num(self):
+        self.assertEqual(num2words(10, lang='is', to='ordinal_num'), '10.')
+        self.assertEqual(num2words(21, lang='is', to='ordinal_num'), '21.')
+        self.assertEqual(num2words(102, lang='is', to='ordinal_num'), '102.')
+        self.assertEqual(num2words(73, lang='is', to='ordinal_num'), '73.')
+
     def test_not_implemented(self):
         # Ordinals
         with self.assertRaises(NotImplementedError):
             num2words(1, to="ordinal", lang="is")
-
-        # Ordinal num
-        with self.assertRaises(NotImplementedError):
-            num2words(1, to="ordinal_num", lang="is")
 
         # Year
         with self.assertRaises(NotImplementedError):

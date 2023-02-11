@@ -32,7 +32,9 @@ GENDERS = {
 }
 
 PLURALS = {
-    "hundrað": ("hundrað", "hundruð"),
+    "hundrað": "hundruð",
+    "illjón": "illjónir",
+    "illjarður": "illjarðar"
 }
 
 
@@ -73,30 +75,9 @@ class Num2Word_IS(lang_EU.Num2Word_EU):
                      "ellefu": "ellefti",
                      "tólf": "tólfti"}
 
-    def pluralize(self, n, noun):
+    def pluralize(self, n, forms):
         form = 0 if (n % 10 == 1 and n % 100 != 11) else 1
-        if form == 0:
-            return noun
-        elif self.GIGA_SUFFIX in noun:
-            return noun.replace(self.GIGA_SUFFIX, "illjarðar")
-        elif self.MEGA_SUFFIX in noun:
-            return noun.replace(self.MEGA_SUFFIX, "illjónir")
-        elif noun not in PLURALS:
-            return noun
-        return PLURALS[noun][form]
-
-    def genderize(self, adj, noun):
-        last = adj.split()[-1]
-        if last not in GENDERS:
-            return adj
-        gender = KK
-        if "hund" in noun or "þús" in noun:
-            gender = HK
-        elif "illjarð" in noun:
-            gender = KK
-        elif "illjón" in noun:
-            gender = KVK
-        return adj.replace(last, GENDERS[last][gender])
+        return forms[form]
 
     def merge(self, lpair, rpair):
         ltext, lnum = lpair
@@ -105,12 +86,12 @@ class Num2Word_IS(lang_EU.Num2Word_EU):
         if lnum == 1 and rnum < 100:
             return (rtext, rnum)
         elif lnum < rnum:
-            rtext = self.pluralize(lnum, rtext)
-            ltext = self.genderize(ltext, rtext)
+            rtext = self._pluralize(lnum, rtext)
+            ltext = self._genderize(ltext, rtext)
             return ("%s %s" % (ltext, rtext), lnum * rnum)
         elif lnum > rnum and rnum in self.cards:
-            rtext = self.pluralize(lnum, rtext)
-            ltext = self.genderize(ltext, rtext)
+            rtext = self._pluralize(lnum, rtext)
+            ltext = self._genderize(ltext, rtext)
             return ("%s og %s" % (ltext, rtext), lnum + rnum)
         return ("%s %s" % (ltext, rtext), lnum + rnum)
 
@@ -118,10 +99,34 @@ class Num2Word_IS(lang_EU.Num2Word_EU):
         raise NotImplementedError
 
     def to_ordinal_num(self, value):
-        raise NotImplementedError
+        return "%s." % value
 
     def to_year(self, val, suffix=None, longval=True):
         raise NotImplementedError
 
     def to_currency(self, val, longval=True):
         raise NotImplementedError
+
+    def _pluralize(self, val, singular):
+        if self.GIGA_SUFFIX in singular:
+            suffix = self.GIGA_SUFFIX
+            plural = singular.replace(suffix, PLURALS[suffix])
+        elif self.MEGA_SUFFIX in singular:
+            suffix = self.MEGA_SUFFIX
+            plural = singular.replace(suffix, PLURALS[suffix])
+        else:
+            plural = PLURALS.get(singular, singular)
+        forms = (singular, plural)
+        return self.pluralize(val, forms)
+    
+    def _genderize(self, adj, noun):
+        last = adj.split()[-1]
+        if last not in GENDERS:
+            return adj
+        if "hund" in noun or "þús" in noun:
+            gender = HK
+        elif "illjón" in noun:
+            gender = KVK
+        else:
+            gender = KK
+        return adj.replace(last, GENDERS[last][gender])
