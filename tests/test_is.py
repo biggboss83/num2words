@@ -71,6 +71,10 @@ class Num2WordsISTest(TestCase):
             num2words(1003, lang='is', to='ordinal'),
             'eitt þúsundasti og þriðji'
         )
+        self.assertEqual(
+            num2words(2000003, lang='is', to='ordinal'),
+            'tvær milljónasti og þriðji'
+        )
 
     def test_ordinal_num(self):
         self.assertEqual(num2words(10, lang='is', to='ordinal_num'), '10.')
