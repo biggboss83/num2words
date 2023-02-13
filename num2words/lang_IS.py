@@ -44,8 +44,13 @@ class Num2Word_IS(lang_EU.Num2Word_EU):
     MEGA_SUFFIX = "illjón"
 
     def setup(self):
-        lows = ["okt", "sept", "sext", "kvint", "kvaðr", "tr", "b", "m"]
-        self.high_numwords = self.gen_high_numwords([], [], lows)
+        lows = ["non", "okt", "sept", "sext", "kvint", "kvaðr", "tr", "b", "m"]
+        units = ["", "un", "dúó", "tre", "kvaður", "kvin", "sex", "sept",
+                 "októ", "nóvem"]
+        tens = ["des", "vigint", "trigint", "kvaðragint", "kvinkvagint",
+                "sexagint", "septúagint", "októgint", "nonagint"]
+
+        self.high_numwords = self.gen_high_numwords(units, tens, lows)
 
         self.negword = "mínus "
         self.pointword = "komma"
@@ -56,13 +61,14 @@ class Num2Word_IS(lang_EU.Num2Word_EU):
         self.mid_numwords = [(1000, "þúsund"), (100, "hundrað"),
                              (90, "níutíu"), (80, "áttatíu"), (70, "sjötíu"),
                              (60, "sextíu"), (50, "fimmtíu"), (40, "fjörutíu"),
-                             (30, "þrjátíu")]
-        self.low_numwords = ["tuttugu", "nítján", "átján", "sautján",
+                             (30, "þrjátíu"), (20, "tuttugu")]
+        self.low_numwords = ["nítján", "átján", "sautján",
                              "sextán", "fimmtán", "fjórtán", "þrettán",
                              "tólf", "ellefu", "tíu", "níu", "átta",
                              "sjö", "sex", "fimm", "fjórir", "þrír",
                              "tveir", "einn", "núll"]
-        self.ords = {"einn": "fyrsti",
+        self.ords = {"núll": "núllti",
+                     "einn": "fyrsti",
                      "tveir": "annar",
                      "þrír": "þriðji",
                      "fjórir": "fjórði",
@@ -73,7 +79,15 @@ class Num2Word_IS(lang_EU.Num2Word_EU):
                      "níu": "níundi",
                      "tíu": "tíundi",
                      "ellefu": "ellefti",
-                     "tólf": "tólfti"}
+                     "tólf": "tólfti",
+                     "tuttugu": "tuttugasti",
+                     "þrjátíu": "þrítugasti",
+                     "fjörutíu": "fertugasti",
+                     "fimmtíu": "fimmtugasti",
+                     "sextíu": "sextugasti",
+                     "sjötíu": "sjötugasti",
+                     "áttatíu": "áttugasti",
+                     "níutíu": "nítugasti"}
 
     def pluralize(self, n, forms):
         form = 0 if (n % 10 == 1 and n % 100 != 11) else 1
@@ -96,7 +110,22 @@ class Num2Word_IS(lang_EU.Num2Word_EU):
         return ("%s %s" % (ltext, rtext), lnum + rnum)
 
     def to_ordinal(self, value):
-        raise NotImplementedError
+        self.verify_ordinal(value)
+        outwords = self.to_cardinal(value).split(" ")
+        if outwords[-1] in self.low_numwords and len(outwords) > 1:
+            outwords[-3] = self._to_ordinal(outwords[-3])
+        outwords[-1] = self._to_ordinal(outwords[-1])
+        return " ".join(outwords)
+
+    def _to_ordinal(self, word):
+        try:
+            return self.ords[word]
+        except KeyError:
+            if word in self.low_numwords:
+                return word + "di"
+            elif self.GIGA_SUFFIX[:-2] in word or word[-2:] == "ir":
+                word = word[:-2]
+            return word + "asti"
 
     def to_ordinal_num(self, value):
         return "%s." % value
@@ -118,7 +147,7 @@ class Num2Word_IS(lang_EU.Num2Word_EU):
             plural = PLURALS.get(singular, singular)
         forms = (singular, plural)
         return self.pluralize(val, forms)
-    
+
     def _genderize(self, adj, noun):
         last = adj.split()[-1]
         if last not in GENDERS:
